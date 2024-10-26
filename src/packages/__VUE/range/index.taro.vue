@@ -272,7 +272,7 @@ export default create({
     const format = (value: number) => {
       const { min, max, step } = props
       value = Math.max(+min, Math.min(value, +max))
-      return Math.round(value / +step) * +step
+      return Math.round((value - +min) / +step) * +step + +min
     }
 
     const isSameValue = (newValue: SliderValue, oldValue: SliderValue) =>
@@ -311,13 +311,21 @@ export default create({
           state.value.width = rect.width
           state.value.height = rect.height
           let clientX, clientY
-          if (Taro.getEnv() === Taro.ENV_TYPE.WEB) {
-            clientX = event.clientX
-            clientY = event.clientY
-          } else {
-            clientX = event.touches[0].clientX
-            clientY = event.touches[0].clientY
+
+          switch (Taro.getEnv()) {
+            case Taro.ENV_TYPE.WEB:
+              clientX = event.clientX
+              clientY = event.clientY
+              break
+            case Taro.ENV_TYPE.SWAN:
+              clientX = event.changedTouches[0].clientX
+              clientY = event.changedTouches[0].clientY
+              break
+            default:
+              clientX = event.touches[0].clientX
+              clientY = event.touches[0].clientY
           }
+
           let delta = clientX - rect.left
           let total = rect.width
           if (props.vertical) {
